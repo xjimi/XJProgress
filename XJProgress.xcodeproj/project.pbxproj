@@ -14,6 +14,8 @@
 		3CFC1C7B1A38328D00E08884 /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 3CFC1C7A1A38328D00E08884 /* Images.xcassets */; };
 		3CFC1C7E1A38328D00E08884 /* LaunchScreen.xib in Resources */ = {isa = PBXBuildFile; fileRef = 3CFC1C7C1A38328D00E08884 /* LaunchScreen.xib */; };
 		3CFC1C8A1A38328D00E08884 /* XJProgressTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 3CFC1C891A38328D00E08884 /* XJProgressTests.m */; };
+		3CFC1C961A38376D00E08884 /* XJProgress.m in Sources */ = {isa = PBXBuildFile; fileRef = 3CFC1C951A38376D00E08884 /* XJProgress.m */; };
+		3CFC1C9B1A383B1100E08884 /* UIImage+ImageEffects.m in Sources */ = {isa = PBXBuildFile; fileRef = 3CFC1C9A1A383B1100E08884 /* UIImage+ImageEffects.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -40,6 +42,10 @@
 		3CFC1C831A38328D00E08884 /* XJProgressTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = XJProgressTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		3CFC1C881A38328D00E08884 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		3CFC1C891A38328D00E08884 /* XJProgressTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = XJProgressTests.m; sourceTree = "<group>"; };
+		3CFC1C941A38376D00E08884 /* XJProgress.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = XJProgress.h; sourceTree = "<group>"; };
+		3CFC1C951A38376D00E08884 /* XJProgress.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = XJProgress.m; sourceTree = "<group>"; };
+		3CFC1C991A383B1100E08884 /* UIImage+ImageEffects.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "UIImage+ImageEffects.h"; sourceTree = "<group>"; };
+		3CFC1C9A1A383B1100E08884 /* UIImage+ImageEffects.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "UIImage+ImageEffects.m"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -81,6 +87,8 @@
 		3CFC1C6C1A38328D00E08884 /* XJProgress */ = {
 			isa = PBXGroup;
 			children = (
+				3CFC1C971A383B1100E08884 /* ThirdParty */,
+				3CFC1C931A38374C00E08884 /* Classes */,
 				3CFC1C711A38328D00E08884 /* AppDelegate.h */,
 				3CFC1C721A38328D00E08884 /* AppDelegate.m */,
 				3CFC1C741A38328D00E08884 /* ViewController.h */,
@@ -117,6 +125,32 @@
 				3CFC1C881A38328D00E08884 /* Info.plist */,
 			);
 			name = "Supporting Files";
+			sourceTree = "<group>";
+		};
+		3CFC1C931A38374C00E08884 /* Classes */ = {
+			isa = PBXGroup;
+			children = (
+				3CFC1C941A38376D00E08884 /* XJProgress.h */,
+				3CFC1C951A38376D00E08884 /* XJProgress.m */,
+			);
+			path = Classes;
+			sourceTree = "<group>";
+		};
+		3CFC1C971A383B1100E08884 /* ThirdParty */ = {
+			isa = PBXGroup;
+			children = (
+				3CFC1C981A383B1100E08884 /* UIImage+ImageEffects */,
+			);
+			path = ThirdParty;
+			sourceTree = "<group>";
+		};
+		3CFC1C981A383B1100E08884 /* UIImage+ImageEffects */ = {
+			isa = PBXGroup;
+			children = (
+				3CFC1C991A383B1100E08884 /* UIImage+ImageEffects.h */,
+				3CFC1C9A1A383B1100E08884 /* UIImage+ImageEffects.m */,
+			);
+			path = "UIImage+ImageEffects";
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -220,7 +254,9 @@
 			buildActionMask = 2147483647;
 			files = (
 				3CFC1C761A38328D00E08884 /* ViewController.m in Sources */,
+				3CFC1C9B1A383B1100E08884 /* UIImage+ImageEffects.m in Sources */,
 				3CFC1C731A38328D00E08884 /* AppDelegate.m in Sources */,
+				3CFC1C961A38376D00E08884 /* XJProgress.m in Sources */,
 				3CFC1C701A38328D00E08884 /* main.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -344,6 +380,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				INFOPLIST_FILE = XJProgress/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 7.1;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
@@ -354,6 +391,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				INFOPLIST_FILE = XJProgress/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 7.1;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
@@ -412,6 +450,7 @@
 				3CFC1C8F1A38328D00E08884 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 		3CFC1C901A38328D00E08884 /* Build configuration list for PBXNativeTarget "XJProgressTests" */ = {
 			isa = XCConfigurationList;
@@ -420,6 +459,7 @@
 				3CFC1C921A38328D00E08884 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};
