@@ -22,24 +22,21 @@
 
 - (IBAction)showProgress
 {
-    /*
+    
     [XJProgress showProgress];
     
     dispatch_main_after(0.5f, ^{
-        [XJProgress updateProgress:0.5f
-                           animated:YES];
+        [XJProgress updateProgress:0.5f animated:YES];
     });
+     
     dispatch_main_after(1.5f, ^{
-        [XJProgress updateProgress:1.0f
-                           animated:YES];
+        [XJProgress updateProgress:1.0f animated:YES];
     });
 
     
     dispatch_main_after(2.5f, ^{
         [XJProgress showSuccess];
     });
-     */
-    [XJProgress showError];
 }
 
 static void dispatch_main_after(NSTimeInterval delay, void (^block)(void))

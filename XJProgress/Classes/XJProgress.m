@@ -26,7 +26,6 @@ typedef NS_ENUM(NSUInteger, XJProgressType) {
 @property (nonatomic, strong) CAShapeLayer *checkmarkLayer;
 @property (nonatomic, strong) CAShapeLayer *errorLayer;
 @property (nonatomic, strong) UILabel *messageLabel;
-@property (nonatomic, assign) CGFloat circleProgressSize;
 @property (nonatomic, assign) CGFloat progressLineWidth;
 @property (nonatomic, assign) XJProgressType progressType;
 
@@ -45,11 +44,14 @@ typedef NS_ENUM(NSUInteger, XJProgressType) {
         sharedView.backgroundView = [[UIImageView alloc] init];
         sharedView.circleProgressView = [[UIView alloc] init];
         sharedView.messageLabel = [[UILabel alloc] init];
-        
+        sharedView.messageLabel.font = [UIFont fontWithName:@"AvenirNext-Regular" size:16.0f];
+        sharedView.messageLabel.textColor = [UIColor whiteColor];
+        sharedView.messageLabel.textAlignment = NSTextAlignmentCenter;
         sharedView.progressLineWidth = 1.0f;
         
         [sharedView addSubview:sharedView.backgroundView];
         [sharedView addSubview:sharedView.circleProgressView];
+        [sharedView addSubview:sharedView.messageLabel];
     });
     return sharedView;
 }
@@ -106,7 +108,7 @@ typedef NS_ENUM(NSUInteger, XJProgressType) {
 - (void)showWithProgressType:(XJProgressType)progressType
 {
     self.progressType = progressType;
-    if (![self.class isDisplay])
+    if (!self.superview)
     {
         [self addToWindow];
         [self addBackground];
@@ -116,12 +118,10 @@ typedef NS_ENUM(NSUInteger, XJProgressType) {
         }];
     }
     
-
-
-    
     switch (self.progressType)
     {
         case XJProgressTypeProgress:
+            [self refreshViewFrame];
             [self addProgressView];
             break;
         case XJProgressTypeSuccess:
@@ -149,7 +149,7 @@ typedef NS_ENUM(NSUInteger, XJProgressType) {
 
 - (UIBezierPath *)circleProgressBezierPath
 {
-    CGFloat radius = (self.circleProgressSize * .5);
+    CGFloat radius = (self.circleProgressView.frame.size.width * .5);
     CGPoint center = CGPointMake(radius, radius);
     CGFloat lineWith = 1.0f;
     
@@ -193,7 +193,7 @@ typedef NS_ENUM(NSUInteger, XJProgressType) {
     [tickPath addLineToPoint:CGPointMake(lineWidth, (tickWidth * 2) - lineWidth)];          // E
     [tickPath addLineToPoint:CGPointMake(lineWidth, 0)];                                    // F
     [tickPath applyTransform:CGAffineTransformMakeRotation(-M_PI_4)];
-    [tickPath applyTransform:CGAffineTransformMakeTranslation(radius*.42, radius)];
+    [tickPath applyTransform:CGAffineTransformMakeTranslation(radius*.4, radius)];
 
     CGFloat xOffset = rect.size.width/2 - radius;
     CGFloat yOffset = rect.size.height/2 - radius;
@@ -217,12 +217,30 @@ typedef NS_ENUM(NSUInteger, XJProgressType) {
     checkmarkAnimation.fillMode = kCAFillModeBoth;
     checkmarkAnimation.toValue = (id)[[UIColor whiteColor] colorWithAlphaComponent:1].CGColor;
     [self.checkmarkLayer addAnimation:checkmarkAnimation forKey:@"fillColor"];
+    
+    CGRect circleProgressFrame = self.circleProgressView.frame;
+    circleProgressFrame.origin.y = self.frame.size.height * .2;
+    CGRect messageLabelFrame = self.messageLabel.frame;
+    messageLabelFrame.origin.y = CGRectGetMaxY(circleProgressFrame) + 5.0f;
+    self.messageLabel.alpha = .0f;
+    self.messageLabel.text = @"Success";
+
+    [UIView animateWithDuration:1 delay:1 options:(7 << 16) animations:^{
+        
+        self.circleProgressView.frame = circleProgressFrame;
+        self.messageLabel.frame = messageLabelFrame;
+        self.messageLabel.alpha = 1.0f;
+        
+    } completion:^(BOOL finished) {
+        
+        
+    }];
 }
 
 - (void)addErrorView
 {
     [self addCircleProgressLineWithLineColor:[[UIColor whiteColor] colorWithAlphaComponent:.8]];
-    self.circleProgressView.backgroundColor = [UIColor lightGrayColor];
+
     CGRect rect = self.circleProgressView.frame;
     CGFloat radius = roundf(rect.size.width/3);
     UIBezierPath *tickPath = [UIBezierPath bezierPath];
@@ -233,12 +251,17 @@ typedef NS_ENUM(NSUInteger, XJProgressType) {
     [tickPath moveToPoint:CGPointMake(tickWidth, 0)];
     [tickPath addLineToPoint:CGPointMake(tickWidth, radius)];
     [tickPath applyTransform:CGAffineTransformMakeRotation(-M_PI_4)];
-    [tickPath applyTransform:CGAffineTransformMakeTranslation(radius, radius)];
+    [tickPath applyTransform:CGAffineTransformMakeTranslation(radius*.3, radius)];
+    
+    CGFloat xOffset = rect.size.width/2 - radius;
+    CGFloat yOffset = rect.size.height/2 - radius;
+    [tickPath applyTransform:CGAffineTransformMakeTranslation(xOffset, yOffset)];
+
     
     self.errorLayer = [CAShapeLayer layer];
     self.errorLayer.path = tickPath.CGPath;
     self.errorLayer.strokeColor = [[UIColor whiteColor] colorWithAlphaComponent:0].CGColor;
-    self.errorLayer.lineWidth = 2;
+    self.errorLayer.lineWidth = 1;
     
     [self.circleProgressView.layer addSublayer:self.errorLayer];
     [self.errorLayer removeAllAnimations];
@@ -367,12 +390,21 @@ typedef NS_ENUM(NSUInteger, XJProgressType) {
     self.progress = progress;
 }
 
-- (CGFloat)circleProgressSize
+- (void)refreshViewFrame
 {
-    CGFloat circlePorgressViewSize = self.frame.size.width * .3;
-    CGFloat circleProgressViewCenter = (self.frame.size.width - circlePorgressViewSize) * .5;
-    self.circleProgressView.frame = CGRectMake(circleProgressViewCenter, circleProgressViewCenter, circlePorgressViewSize, circlePorgressViewSize);
-    return circlePorgressViewSize;
+    CGFloat vw = self.frame.size.width;
+    CGFloat vh = self.frame.size.height;
+    
+    CGFloat circlePorgressViewSize = vw * .3;
+    CGFloat circleProgressViewPosX = (vw - circlePorgressViewSize) * .5;
+    CGFloat circleProgressViewPosY = (vh - circlePorgressViewSize) * .4;
+    self.circleProgressView.frame = CGRectMake(circleProgressViewPosX, circleProgressViewPosY, circlePorgressViewSize, circlePorgressViewSize);
+    
+    CGFloat messageLabelPadding = 20.0f;
+    CGFloat messageLabelPosY = CGRectGetMaxY(self.circleProgressView.frame) + 5;
+    CGFloat messageLabelWidth = vw - messageLabelPadding * 2;
+    CGFloat messageLabelHeight = 30.0f;
+    self.messageLabel.frame = CGRectMake(messageLabelPadding, messageLabelPosY, messageLabelWidth, messageLabelHeight);
 }
 
 - (void)addToWindow
@@ -427,11 +459,6 @@ typedef NS_ENUM(NSUInteger, XJProgressType) {
                                         tintColor:[[UIColor darkGrayColor] colorWithAlphaComponent:.5]
                             saturationDeltaFactor:1.0f
                                         maskImage:nil];
-}
-
-+ (BOOL)isDisplay
-{
-    return ([self sharedObject].superview != nil);
 }
 
 @end
