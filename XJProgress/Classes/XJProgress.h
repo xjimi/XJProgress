@@ -12,9 +12,14 @@
 
 @property (nonatomic, strong) UIColor *blurBackgroundTintColor;
 
+
 + (void)showProgress;
 
 + (void)updateProgress:(CGFloat)progress animated:(BOOL)animated;
+
++ (void)showSuccess;
+
++ (void)showError;
 
 + (void)dismiss;
 
