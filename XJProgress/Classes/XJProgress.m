@@ -19,7 +19,7 @@ typedef NS_ENUM(NSUInteger, XJProgressType) {
 
 @property (nonatomic, strong) UIImageView *backgroundView;
 @property (nonatomic, assign) CGFloat progress;
-
+@property (nonatomic, strong) UIView *container;
 @property (nonatomic, strong) UIView *circleProgressView;
 @property (nonatomic, strong) CAShapeLayer *circleProgressLineLayer;
 @property (nonatomic, strong) CAShapeLayer *circleBackgroundLineLayer;
@@ -42,6 +42,7 @@ typedef NS_ENUM(NSUInteger, XJProgressType) {
         sharedView = [[XJProgress alloc] init];
         
         sharedView.backgroundView = [[UIImageView alloc] init];
+        sharedView.container = [[UIView alloc] init];
         sharedView.circleProgressView = [[UIView alloc] init];
         sharedView.messageLabel = [[UILabel alloc] init];
         sharedView.messageLabel.font = [UIFont fontWithName:@"AvenirNext-Regular" size:16.0f];
@@ -50,8 +51,9 @@ typedef NS_ENUM(NSUInteger, XJProgressType) {
         sharedView.progressLineWidth = 1.0f;
         
         [sharedView addSubview:sharedView.backgroundView];
-        [sharedView addSubview:sharedView.circleProgressView];
-        [sharedView addSubview:sharedView.messageLabel];
+        [sharedView addSubview:sharedView.container];
+        [sharedView.container addSubview:sharedView.circleProgressView];
+        [sharedView.container addSubview:sharedView.messageLabel];
     });
     return sharedView;
 }
@@ -185,7 +187,7 @@ typedef NS_ENUM(NSUInteger, XJProgressType) {
     CGFloat radius = roundf(rect.size.width/4);
     UIBezierPath *tickPath = [UIBezierPath bezierPath];
     CGFloat tickWidth = roundf(radius/3);
-    CGFloat lineWidth = 2;
+    CGFloat lineWidth = 1;
     [tickPath moveToPoint:CGPointMake(0, 0)];                                               // A
     [tickPath addLineToPoint:CGPointMake(0, tickWidth * 2)];                                // B
     [tickPath addLineToPoint:CGPointMake(tickWidth * 3.5, tickWidth * 2)];                  // C
@@ -212,29 +214,39 @@ typedef NS_ENUM(NSUInteger, XJProgressType) {
     
     //改POP
     CABasicAnimation *checkmarkAnimation = [CABasicAnimation animationWithKeyPath:@"fillColor"];
-    checkmarkAnimation.duration = .6;
+    checkmarkAnimation.duration = .3;
     checkmarkAnimation.removedOnCompletion = NO;
     checkmarkAnimation.fillMode = kCAFillModeBoth;
     checkmarkAnimation.toValue = (id)[[UIColor whiteColor] colorWithAlphaComponent:1].CGColor;
     [self.checkmarkLayer addAnimation:checkmarkAnimation forKey:@"fillColor"];
     
-    CGRect circleProgressFrame = self.circleProgressView.frame;
-    circleProgressFrame.origin.y = self.frame.size.height * .2;
-    CGRect messageLabelFrame = self.messageLabel.frame;
-    messageLabelFrame.origin.y = CGRectGetMaxY(circleProgressFrame) + 5.0f;
-    self.messageLabel.alpha = .0f;
+    CGRect containerFrame = self.container.frame;
+    containerFrame.origin.y = self.frame.size.height * .2;
+    
+    self.messageLabel.alpha = 0.0f;
     self.messageLabel.text = @"Success";
+    CGRect messageLabelFrame = self.messageLabel.frame;
+    messageLabelFrame.origin.y = CGRectGetMaxY(self.circleProgressView.frame) - 10.0f;
+    self.messageLabel.frame = messageLabelFrame;
+    messageLabelFrame.origin.y = CGRectGetMaxY(self.circleProgressView.frame);
 
-    [UIView animateWithDuration:1 delay:1 options:(7 << 16) animations:^{
-        
-        self.circleProgressView.frame = circleProgressFrame;
-        self.messageLabel.frame = messageLabelFrame;
+    [UIView animateWithDuration:.6 delay:0 usingSpringWithDamping:1.0 initialSpringVelocity:5 options:0 animations:^{
+
         self.messageLabel.alpha = 1.0f;
-        
+        self.messageLabel.frame = messageLabelFrame;
+
     } completion:^(BOOL finished) {
         
+        [UIView animateWithDuration:.8 delay:.5 usingSpringWithDamping:1.0 initialSpringVelocity:5 options:0 animations:^{
         
+            self.container.frame = containerFrame;
+            
+        } completion:^(BOOL finished) {
+            
+        }];
+
     }];
+    
 }
 
 - (void)addErrorView
@@ -283,7 +295,6 @@ typedef NS_ENUM(NSUInteger, XJProgressType) {
     CABasicAnimation *circleAnimation;
     if (self.superview)
     {
-        NSLog(@"animateFullCircleWithColor");
         circleAnimation = [CABasicAnimation animationWithKeyPath:@"strokeColor"];
         circleAnimation.duration = .6;
         circleAnimation.toValue = (id)color.CGColor;
@@ -395,16 +406,21 @@ typedef NS_ENUM(NSUInteger, XJProgressType) {
     CGFloat vw = self.frame.size.width;
     CGFloat vh = self.frame.size.height;
     
-    CGFloat circlePorgressViewSize = vw * .3;
-    CGFloat circleProgressViewPosX = (vw - circlePorgressViewSize) * .5;
-    CGFloat circleProgressViewPosY = (vh - circlePorgressViewSize) * .4;
-    self.circleProgressView.frame = CGRectMake(circleProgressViewPosX, circleProgressViewPosY, circlePorgressViewSize, circlePorgressViewSize);
-    
-    CGFloat messageLabelPadding = 20.0f;
-    CGFloat messageLabelPosY = CGRectGetMaxY(self.circleProgressView.frame) + 5;
-    CGFloat messageLabelWidth = vw - messageLabelPadding * 2;
+    CGFloat circlePorgressViewSize = roundf(vw*.25);
     CGFloat messageLabelHeight = 30.0f;
-    self.messageLabel.frame = CGRectMake(messageLabelPadding, messageLabelPosY, messageLabelWidth, messageLabelHeight);
+    
+    CGFloat containerp = 20.0f;
+    CGFloat containerw = vw - containerp * 2;
+    CGFloat containerh = circlePorgressViewSize + messageLabelHeight;
+    CGFloat containerPosY = (vh - containerh) * .5;
+    self.container.frame = CGRectMake(containerp, containerPosY, containerw, containerh);
+    
+    CGFloat circleProgressViewPosX = (containerw - circlePorgressViewSize) * .5;
+    self.circleProgressView.frame = CGRectMake(circleProgressViewPosX, 0, circlePorgressViewSize, circlePorgressViewSize);
+    
+    CGFloat messageLabelPosY = CGRectGetMaxY(self.circleProgressView.frame);
+    CGFloat messageLabelWidth = containerw;
+    self.messageLabel.frame = CGRectMake(0, messageLabelPosY, messageLabelWidth, messageLabelHeight);
 }
 
 - (void)addToWindow
