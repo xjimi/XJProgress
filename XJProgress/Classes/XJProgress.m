@@ -28,6 +28,7 @@ typedef NS_ENUM(NSUInteger, XJProgressType) {
 @property (nonatomic, strong) UILabel *messageLabel;
 @property (nonatomic, assign) CGFloat progressLineWidth;
 @property (nonatomic, assign) XJProgressType progressType;
+@property (nonatomic, strong) UIButton *btn_done;
 
 @end
 
@@ -40,20 +41,29 @@ typedef NS_ENUM(NSUInteger, XJProgressType) {
     static dispatch_once_t onceToken;
     dispatch_once(&onceToken, ^{
         sharedView = [[XJProgress alloc] init];
-        
         sharedView.backgroundView = [[UIImageView alloc] init];
         sharedView.container = [[UIView alloc] init];
         sharedView.circleProgressView = [[UIView alloc] init];
+        
         sharedView.messageLabel = [[UILabel alloc] init];
         sharedView.messageLabel.font = [UIFont fontWithName:@"AvenirNext-Regular" size:16.0f];
         sharedView.messageLabel.textColor = [UIColor whiteColor];
         sharedView.messageLabel.textAlignment = NSTextAlignmentCenter;
         sharedView.progressLineWidth = 1.0f;
         
+        sharedView.btn_done = [UIButton buttonWithType:UIButtonTypeCustom];
+        sharedView.btn_done.titleLabel.font = [UIFont fontWithName:@"AvenirNext-Regular" size:12.0f];
+        [sharedView.btn_done setTitle:@"Done" forState:UIControlStateNormal];
+        sharedView.btn_done.layer.masksToBounds = YES;
+        sharedView.btn_done.layer.cornerRadius = 3.0f;
+        sharedView.btn_done.backgroundColor = [[UIColor whiteColor] colorWithAlphaComponent:.3];
+        [sharedView.btn_done addTarget:sharedView action:@selector(action_done) forControlEvents:UIControlEventTouchUpInside];
+
         [sharedView addSubview:sharedView.backgroundView];
         [sharedView addSubview:sharedView.container];
         [sharedView.container addSubview:sharedView.circleProgressView];
         [sharedView.container addSubview:sharedView.messageLabel];
+        [sharedView.container addSubview:sharedView.btn_done];
     });
     return sharedView;
 }
@@ -88,6 +98,8 @@ typedef NS_ENUM(NSUInteger, XJProgressType) {
     [UIView animateKeyframesWithDuration:.3 delay:0 options:0 animations:^{
         self.alpha = 0.0f;
     } completion:^(BOOL finished) {
+        self.backgroundView.image = nil;
+        [self removeAllCAShapeLayer];
         [self removeFromSuperview];
     }];
 }
@@ -120,10 +132,10 @@ typedef NS_ENUM(NSUInteger, XJProgressType) {
         }];
     }
     
+    [self refreshViewFrame];
     switch (self.progressType)
     {
         case XJProgressTypeProgress:
-            [self refreshViewFrame];
             [self addProgressView];
             break;
         case XJProgressTypeSuccess:
@@ -222,13 +234,19 @@ typedef NS_ENUM(NSUInteger, XJProgressType) {
     
     CGRect containerFrame = self.container.frame;
     containerFrame.origin.y = self.frame.size.height * .2;
-    
+    self.btn_done.alpha = 0.0f;
     self.messageLabel.alpha = 0.0f;
     self.messageLabel.text = @"Success";
+    
     CGRect messageLabelFrame = self.messageLabel.frame;
     messageLabelFrame.origin.y = CGRectGetMaxY(self.circleProgressView.frame) - 10.0f;
     self.messageLabel.frame = messageLabelFrame;
     messageLabelFrame.origin.y = CGRectGetMaxY(self.circleProgressView.frame);
+    
+    CGRect btnDoneFrame = self.btn_done.frame;
+    btnDoneFrame.origin.y = messageLabelFrame.origin.y + messageLabelFrame.size.height + 10.0f;
+    self.btn_done.frame = btnDoneFrame;
+    btnDoneFrame.origin.y = messageLabelFrame.origin.y + messageLabelFrame.size.height + 5.0f;
 
     [UIView animateWithDuration:.6 delay:0 usingSpringWithDamping:1.0 initialSpringVelocity:5 options:0 animations:^{
 
@@ -237,16 +255,17 @@ typedef NS_ENUM(NSUInteger, XJProgressType) {
 
     } completion:^(BOOL finished) {
         
-        [UIView animateWithDuration:.8 delay:.5 usingSpringWithDamping:1.0 initialSpringVelocity:5 options:0 animations:^{
+        [UIView animateWithDuration:.6 delay:.5 usingSpringWithDamping:1.0 initialSpringVelocity:5 options:0 animations:^{
         
-            self.container.frame = containerFrame;
-            
+            //self.container.frame = containerFrame;
+            self.btn_done.alpha = 1.0f;
+            self.btn_done.frame = btnDoneFrame;
+
         } completion:^(BOOL finished) {
             
         }];
-
+        
     }];
-    
 }
 
 - (void)addErrorView
@@ -254,9 +273,9 @@ typedef NS_ENUM(NSUInteger, XJProgressType) {
     [self addCircleProgressLineWithLineColor:[[UIColor whiteColor] colorWithAlphaComponent:.8]];
 
     CGRect rect = self.circleProgressView.frame;
-    CGFloat radius = roundf(rect.size.width/3);
+    CGFloat radius = (rect.size.width/3);
     UIBezierPath *tickPath = [UIBezierPath bezierPath];
-    CGFloat tickWidth = roundf(radius/2);
+    CGFloat tickWidth = (radius/2);
 
     [tickPath moveToPoint:CGPointMake(0, tickWidth)];
     [tickPath addLineToPoint:CGPointMake(radius, tickWidth)];
@@ -290,6 +309,12 @@ typedef NS_ENUM(NSUInteger, XJProgressType) {
     [self.errorLayer addAnimation:errorAnimation forKey:@"strokeColor"];
 }
 
+- (void)action_done
+{
+    NSLog(@"action_doneaction_doneaction_done ");
+    [self dismiss];
+}
+
 - (void)animateFullCircleWithColor:(UIColor *)color
 {
     CABasicAnimation *circleAnimation;
@@ -318,8 +343,8 @@ typedef NS_ENUM(NSUInteger, XJProgressType) {
 
 - (void)addProgressView
 {
+    self.progress = 0.0f;
     [self removeCircleProgress];
-    
     UIBezierPath *circlePath = [self circleProgressBezierPath];
     
     self.circleProgressLineLayer = [CAShapeLayer layer];
@@ -370,6 +395,22 @@ typedef NS_ENUM(NSUInteger, XJProgressType) {
     [CATransaction commit];
 }
 
+- (void)removeAllCAShapeLayer
+{
+    [self removeCircleProgress];
+    
+    if (self.checkmarkLayer.superlayer) {
+        [self.checkmarkLayer removeFromSuperlayer];
+    }
+    
+    if (self.errorLayer.superlayer) {
+        [self.errorLayer removeFromSuperlayer];
+    }
+    
+    self.checkmarkLayer = nil;
+    self.errorLayer = nil;
+}
+
 - (void)updateProgress:(CGFloat)progress animated:(BOOL)animated
 {
     /*
@@ -408,10 +449,11 @@ typedef NS_ENUM(NSUInteger, XJProgressType) {
     
     CGFloat circlePorgressViewSize = roundf(vw*.25);
     CGFloat messageLabelHeight = 30.0f;
-    
+    CGFloat btn_done_h = 24.0f;
+
     CGFloat containerp = 20.0f;
     CGFloat containerw = vw - containerp * 2;
-    CGFloat containerh = circlePorgressViewSize + messageLabelHeight;
+    CGFloat containerh = circlePorgressViewSize + messageLabelHeight + 5.0f + btn_done_h;
     CGFloat containerPosY = (vh - containerh) * .5;
     self.container.frame = CGRectMake(containerp, containerPosY, containerw, containerh);
     
@@ -421,6 +463,12 @@ typedef NS_ENUM(NSUInteger, XJProgressType) {
     CGFloat messageLabelPosY = CGRectGetMaxY(self.circleProgressView.frame);
     CGFloat messageLabelWidth = containerw;
     self.messageLabel.frame = CGRectMake(0, messageLabelPosY, messageLabelWidth, messageLabelHeight);
+    self.messageLabel.alpha = 0.0f;
+    
+    CGFloat btn_done_w = 60.0f;
+    CGFloat btnDonePosY = CGRectGetMaxY(self.messageLabel.frame);
+    self.btn_done.frame = CGRectMake((containerw-btn_done_w)*.5, btnDonePosY, btn_done_w, btn_done_h);
+    self.btn_done.alpha = 0.0f;
 }
 
 - (void)addToWindow
