@@ -14,12 +14,15 @@
 
 
 + (void)showProgress;
++ (void)showProgressInView:(UIView *)superView;
 
 + (void)updateProgress:(CGFloat)progress animated:(BOOL)animated;
 
-+ (void)showSuccess;
++ (void)showSuccessWithMessage:(NSString *)message;
++ (void)showSuccessWithMessage:(NSString *)message inView:(UIView *)superView;
 
-+ (void)showError;
++ (void)showErrorWithMessage:(NSString *)message;
++ (void)showErrorWithMessage:(NSString *)message inView:(UIView *)superView;
 
 + (void)dismiss;
 

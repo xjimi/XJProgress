@@ -46,13 +46,13 @@ typedef NS_ENUM(NSUInteger, XJProgressType) {
         sharedView.circleProgressView = [[UIView alloc] init];
         
         sharedView.messageLabel = [[UILabel alloc] init];
-        sharedView.messageLabel.font = [UIFont fontWithName:@"AvenirNext-Regular" size:16.0f];
+        sharedView.messageLabel.font = [UIFont fontWithName:@"AvenirNext-Regular" size:14.0f];
         sharedView.messageLabel.textColor = [UIColor whiteColor];
         sharedView.messageLabel.textAlignment = NSTextAlignmentCenter;
         sharedView.progressLineWidth = 1.0f;
         
         sharedView.btn_done = [UIButton buttonWithType:UIButtonTypeCustom];
-        sharedView.btn_done.titleLabel.font = [UIFont fontWithName:@"AvenirNext-Regular" size:12.0f];
+        sharedView.btn_done.titleLabel.font = [UIFont fontWithName:@"AvenirNext-Regular" size:14.0f];
         [sharedView.btn_done setTitle:@"Done" forState:UIControlStateNormal];
         sharedView.btn_done.layer.masksToBounds = YES;
         sharedView.btn_done.layer.cornerRadius = 3.0f;
@@ -63,14 +63,19 @@ typedef NS_ENUM(NSUInteger, XJProgressType) {
         [sharedView addSubview:sharedView.container];
         [sharedView.container addSubview:sharedView.circleProgressView];
         [sharedView.container addSubview:sharedView.messageLabel];
-        [sharedView.container addSubview:sharedView.btn_done];
+        [sharedView addSubview:sharedView.btn_done];
     });
     return sharedView;
 }
 
 + (void)showProgress
 {
-    [[self sharedObject] showProgress];
+    [self showProgressInView:nil];
+}
+
++ (void)showProgressInView:(UIView *)superView
+{
+    [[self sharedObject] showProgressInView:superView];
 }
 
 + (void)updateProgress:(CGFloat)progress animated:(BOOL)animated
@@ -78,14 +83,24 @@ typedef NS_ENUM(NSUInteger, XJProgressType) {
     [[self sharedObject] updateProgress:progress animated:animated];
 }
 
-+ (void)showSuccess
++ (void)showSuccessWithMessage:(NSString *)message
 {
-    [[self sharedObject] showSuccess];
+    [self showSuccessWithMessage:message inView:nil];
 }
 
-+ (void)showError
++ (void)showSuccessWithMessage:(NSString *)message inView:(UIView *)superView
 {
-    [[self sharedObject] showError];
+    [[self sharedObject] showSuccessWithMessage:message inView:superView];
+}
+
++ (void)showErrorWithMessage:(NSString *)message
+{
+    [self showErrorWithMessage:message inView:nil];
+}
+
++ (void)showErrorWithMessage:(NSString *)message inView:(UIView *)superView
+{
+    [[self sharedObject] showErrorWithMessage:message inView:superView];
 }
 
 + (void)dismiss
@@ -104,34 +119,55 @@ typedef NS_ENUM(NSUInteger, XJProgressType) {
     }];
 }
 
-- (void)showProgress
+- (void)showProgressInView:(UIView *)superView
 {
-    [self showWithProgressType:XJProgressTypeProgress];
+    [self showWithProgressType:XJProgressTypeProgress message:nil inView:superView];
 }
 
-- (void)showSuccess
+- (void)showSuccessWithMessage:(NSString *)message
 {
-    [self showWithProgressType:XJProgressTypeSuccess];
+    [self showSuccessWithMessage:message inView:nil];
 }
 
-- (void)showError
+- (void)showSuccessWithMessage:(NSString *)message inView:(UIView *)superView
 {
-    [self showWithProgressType:XJProgressTypeError];
+    [self showWithProgressType:XJProgressTypeSuccess message:message inView:superView];
 }
 
-- (void)showWithProgressType:(XJProgressType)progressType
+- (void)showErrorWithMessage:(NSString *)message
+{
+    [self showErrorWithMessage:message inView:nil];
+}
+
+- (void)showErrorWithMessage:(NSString *)message inView:(UIView *)superView
+{
+    [self showWithProgressType:XJProgressTypeError message:message inView:superView];
+}
+
+- (void)showWithProgressType:(XJProgressType)progressType message:(NSString *)message inView:(UIView *)superView
 {
     self.progressType = progressType;
-    if (!self.superview)
+    
+    if (![self.class isVisible])
     {
-        [self addToWindow];
+        if (!superView)
+        {
+            [self addToWindow];
+        }
+        else
+        {
+            [self addToView:superView];
+        }
+        
         [self addBackground];
         [UIView animateWithDuration:.3 delay:0 options:0 animations:^{
             self.alpha = 1.0f;
         } completion:^(BOOL finished) {
         }];
+
     }
     
+    self.messageLabel.text = message;
     [self refreshViewFrame];
     switch (self.progressType)
     {
@@ -222,7 +258,6 @@ typedef NS_ENUM(NSUInteger, XJProgressType) {
     [self.checkmarkLayer removeAllAnimations];
     
     [self animateFullCircleWithColor:[[UIColor whiteColor] colorWithAlphaComponent:1]];
-
     
     //改POP
     CABasicAnimation *checkmarkAnimation = [CABasicAnimation animationWithKeyPath:@"fillColor"];
@@ -232,40 +267,7 @@ typedef NS_ENUM(NSUInteger, XJProgressType) {
     checkmarkAnimation.toValue = (id)[[UIColor whiteColor] colorWithAlphaComponent:1].CGColor;
     [self.checkmarkLayer addAnimation:checkmarkAnimation forKey:@"fillColor"];
     
-    CGRect containerFrame = self.container.frame;
-    containerFrame.origin.y = self.frame.size.height * .2;
-    self.btn_done.alpha = 0.0f;
-    self.messageLabel.alpha = 0.0f;
-    self.messageLabel.text = @"Success";
-    
-    CGRect messageLabelFrame = self.messageLabel.frame;
-    messageLabelFrame.origin.y = CGRectGetMaxY(self.circleProgressView.frame) - 10.0f;
-    self.messageLabel.frame = messageLabelFrame;
-    messageLabelFrame.origin.y = CGRectGetMaxY(self.circleProgressView.frame);
-    
-    CGRect btnDoneFrame = self.btn_done.frame;
-    btnDoneFrame.origin.y = messageLabelFrame.origin.y + messageLabelFrame.size.height + 10.0f;
-    self.btn_done.frame = btnDoneFrame;
-    btnDoneFrame.origin.y = messageLabelFrame.origin.y + messageLabelFrame.size.height + 5.0f;
-
-    [UIView animateWithDuration:.6 delay:0 usingSpringWithDamping:1.0 initialSpringVelocity:5 options:0 animations:^{
-
-        self.messageLabel.alpha = 1.0f;
-        self.messageLabel.frame = messageLabelFrame;
-
-    } completion:^(BOOL finished) {
-        
-        [UIView animateWithDuration:.6 delay:.5 usingSpringWithDamping:1.0 initialSpringVelocity:5 options:0 animations:^{
-        
-            //self.container.frame = containerFrame;
-            self.btn_done.alpha = 1.0f;
-            self.btn_done.frame = btnDoneFrame;
-
-        } completion:^(BOOL finished) {
-            
-        }];
-        
-    }];
+    [self showCompletion];
 }
 
 - (void)addErrorView
@@ -299,7 +301,6 @@ typedef NS_ENUM(NSUInteger, XJProgressType) {
     
     [self animateFullCircleWithColor:[[UIColor whiteColor] colorWithAlphaComponent:1]];
     
-    
     //改POP
     CABasicAnimation *errorAnimation = [CABasicAnimation animationWithKeyPath:@"strokeColor"];
     errorAnimation.duration = .6;
@@ -307,11 +308,49 @@ typedef NS_ENUM(NSUInteger, XJProgressType) {
     errorAnimation.fillMode = kCAFillModeBoth;
     errorAnimation.toValue = (id)[[UIColor whiteColor] colorWithAlphaComponent:1].CGColor;
     [self.errorLayer addAnimation:errorAnimation forKey:@"strokeColor"];
+    
+    [self showCompletion];
+}
+
+- (void)showCompletion
+{
+    CGRect containerFrame = self.container.frame;
+    containerFrame.origin.y = (self.frame.size.height - self.btn_done.frame.size.height - 20 - containerFrame.size.height)*.5;
+    self.btn_done.alpha = 0.0f;
+    self.messageLabel.alpha = 0.0f;
+    
+    CGRect messageLabelFrame = self.messageLabel.frame;
+    messageLabelFrame.origin.y = CGRectGetMaxY(self.circleProgressView.frame) + 10.0f;
+    self.messageLabel.frame = messageLabelFrame;
+    messageLabelFrame.origin.y = CGRectGetMaxY(self.circleProgressView.frame);
+
+    CGRect btn_done_frame = self.btn_done.frame;
+    btn_done_frame.origin.y = self.frame.size.height;
+    self.btn_done.frame = btn_done_frame;
+    btn_done_frame.origin.y = self.frame.size.height - 10 - self.btn_done.frame.size.height;
+    
+    [UIView animateWithDuration:.6 delay:0 usingSpringWithDamping:1.0 initialSpringVelocity:5 options:0 animations:^{
+        
+        self.messageLabel.alpha = 1.0f;
+        self.messageLabel.frame = messageLabelFrame;
+        
+    } completion:^(BOOL finished) {
+        
+        [UIView animateWithDuration:.6 delay:0 usingSpringWithDamping:1.0 initialSpringVelocity:5 options:0 animations:^{
+            
+            self.btn_done.alpha = 1.0f;
+            self.btn_done.frame = btn_done_frame;
+            self.container.frame = containerFrame;
+            
+        } completion:^(BOOL finished) {
+            
+        }];
+        
+    }];
 }
 
 - (void)action_done
 {
-    NSLog(@"action_doneaction_doneaction_done ");
     [self dismiss];
 }
 
@@ -449,11 +488,10 @@ typedef NS_ENUM(NSUInteger, XJProgressType) {
     
     CGFloat circlePorgressViewSize = roundf(vw*.25);
     CGFloat messageLabelHeight = 30.0f;
-    CGFloat btn_done_h = 24.0f;
 
     CGFloat containerp = 20.0f;
     CGFloat containerw = vw - containerp * 2;
-    CGFloat containerh = circlePorgressViewSize + messageLabelHeight + 5.0f + btn_done_h;
+    CGFloat containerh = circlePorgressViewSize + messageLabelHeight;
     CGFloat containerPosY = (vh - containerh) * .5;
     self.container.frame = CGRectMake(containerp, containerPosY, containerw, containerh);
     
@@ -465,18 +503,17 @@ typedef NS_ENUM(NSUInteger, XJProgressType) {
     self.messageLabel.frame = CGRectMake(0, messageLabelPosY, messageLabelWidth, messageLabelHeight);
     self.messageLabel.alpha = 0.0f;
     
-    CGFloat btn_done_w = 60.0f;
-    CGFloat btnDonePosY = CGRectGetMaxY(self.messageLabel.frame);
-    self.btn_done.frame = CGRectMake((containerw-btn_done_w)*.5, btnDonePosY, btn_done_w, btn_done_h);
+    CGFloat btn_done_w = vw - 20.0f;
+    CGFloat btn_done_h = 30.0f;
+    //CGFloat btnDonePosY = CGRectGetMaxY(self.messageLabel.frame);
+    self.btn_done.frame = CGRectMake(10, vh-btn_done_h-10, btn_done_w, btn_done_h);
     self.btn_done.alpha = 0.0f;
 }
 
 - (void)addToWindow
 {
     UIWindow *currentWindow = nil;
-    
     NSEnumerator *frontToBackWindows = [[[UIApplication sharedApplication] windows] reverseObjectEnumerator];
-    
     for (UIWindow *window in frontToBackWindows) {
         if (window.windowLevel == UIWindowLevelNormal) {
             currentWindow = window;
@@ -519,10 +556,15 @@ typedef NS_ENUM(NSUInteger, XJProgressType) {
     
     UIGraphicsEndImageContext();
     
-    return [blurredScreenShot applyBlurWithRadius:30.0f
+    return [blurredScreenShot applyBlurWithRadius:40.0f
                                         tintColor:[[UIColor darkGrayColor] colorWithAlphaComponent:.5]
                             saturationDeltaFactor:1.0f
                                         maskImage:nil];
+}
+
++ (BOOL)isVisible
+{
+    return ([self sharedObject].superview != nil && [self sharedObject].alpha > 0.0f);
 }
 
 @end

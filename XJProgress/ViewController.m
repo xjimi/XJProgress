@@ -23,7 +23,7 @@
 - (IBAction)showProgress
 {
     
-    [XJProgress showProgress];
+    [XJProgress showProgressInView:self.view];
     
     dispatch_main_after(0.5f, ^{
         [XJProgress updateProgress:0.5f animated:YES];
@@ -35,7 +35,7 @@
 
     
     dispatch_main_after(2.5f, ^{
-        [XJProgress showSuccess];
+        [XJProgress showErrorWithMessage:@"Errorr" inView:self.view];
     });
 }
 
